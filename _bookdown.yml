@@ -1,4 +1,4 @@
-book_filename: "demyster-ddm"
+book_filename: "ddm"
 new_session: true
 output_dir: "docs"
 before_chapter_script: _common.R

@@ -1,6 +1,6 @@
-# demyster-ddm
+# demystR-ddm
 
-*The Drift Diffusion Model From Scratch*, part of the demyster series.
+*The Drift Diffusion Model From Scratch*, part of the [demystR](https://demystr.github.io) series.
 
 A bookdown book that builds the drift diffusion model (DDM) from its equations, in base
 R: each part of the model is shown as an equation, as code and as a figure.
@@ -17,6 +17,10 @@ bookdown::render_book("index.Rmd", "bookdown::bs4_book")
 The rendered HTML is written to `docs/`. Readers need only the tidyverse. `rtdists` is
 optional (used for one check in "From Paths to Distributions") and is needed only to
 regenerate the data with `data-raw/simulate_rdm.R`.
+
+`docs/` is not committed. On every push to `main`, the workflow in
+`.github/workflows/deploy.yml` installs R, the tidyverse and bookdown, renders the book
+and deploys `docs/` to GitHub Pages.
 
 ## Code style
 
