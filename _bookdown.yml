@@ -1,0 +1,29 @@
+book_filename: "demyster-ddm"
+new_session: true
+output_dir: "docs"
+before_chapter_script: _common.R
+delete_merged_file: true
+rmd_files:
+  - "index.Rmd"
+  - "0a-getting-started.Rmd"
+  - "1a-the-idea.Rmd"
+  - "1b-step-by-step.Rmd"
+  - "1c-predictions.Rmd"
+  - "1d-paths-to-distributions.Rmd"
+  - "1e-fitting.Rmd"
+  - "1f-checking.Rmd"
+  - "1g-selective-influence.Rmd"
+  - "1h-real-data.Rmd"
+  - "2a-value-as-drift.Rmd"
+  - "2b-deadlines-lapses.Rmd"
+  - "2c-two-attributes.Rmd"
+  - "2d-design-recovery.Rmd"
+  - "3a-hierarchical.Rmd"
+  - "A-calculus.Rmd"
+language:
+  ui:
+    chapter_name: "Chapter "
+  label:
+    fig: "Figure "
+    tab: "Table "
+    eq: "Equation "

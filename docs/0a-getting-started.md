@@ -1,0 +1,106 @@
+# Getting Started {#getting-started .unnumbered}
+
+The book uses the **tidyverse** for handling data and drawing plots. The model itself
+is written in base R, so you can see every calculation.
+
+<div class="note">
+**What you need**
+
+R and RStudio, installed on your own computer or available through your university. If
+you need to install them, follow the instructions on
+[Posit's download page](https://posit.co/download/rstudio-desktop/): install R first,
+then RStudio.
+</div>
+
+## What You Will Set Up {-}
+
+By the end of this page you will have one folder, called `ddm`, that looks like this:
+
+```text
+ddm/
+  ddm.Rproj               the project file: open your work from here
+  R/
+    ddm_functions.R       every function built in the book
+  data/
+    rdm.csv               the random-dot motion data for Part 1
+    rdm_truth.csv         the true parameter values used to simulate them
+```
+
+This is the same layout the book uses, so every line of code in the book runs
+unchanged in your project.
+
+## Create The Project {-}
+
+An **RStudio project** is a folder that RStudio treats as the home for one piece of work.
+When you open the project, RStudio starts in that folder, so your files can find each
+other without any `setwd()`.
+
+1. Open RStudio.
+2. Go to **File > New Project...**, choose **New Directory**, then **New Project**.
+3. In **Directory name**, type `ddm`.
+4. Click **Browse...** and choose where the folder should go, somewhere you will find
+   again, such as your Documents folder. Avoid your Downloads folder.
+5. Click **Create Project**.
+
+To come back to your work later, double-click `ddm.Rproj`.
+
+## Download The Files {-}
+
+In RStudio's **Files** pane, click **New Folder** twice to make two folders inside
+`ddm`, called `R` and `data`. Then save these files into them:
+
+- into `R`: <a href="R/ddm_functions.R" download>ddm_functions.R</a>
+- into `data`: <a href="data/rdm.csv" download>rdm.csv</a> and
+  <a href="data/rdm_truth.csv" download>rdm_truth.csv</a>
+
+Most browsers save into your Downloads folder. If yours did, move the files using File
+Explorer (Windows) or Finder (Mac).
+
+`ddm_functions.R` contains every function the book builds. You can write each function
+yourself as you read, or load them all at once with
+
+
+``` r
+source("R/ddm_functions.R")
+```
+
+## Install The Packages {-}
+
+Install the tidyverse once, by running this line in the RStudio **Console**:
+
+
+``` r
+install.packages("tidyverse")
+```
+
+You only need to do this once on each computer. On a university computer it may already
+be installed. If R asks whether to install from source, answer **No**: the ready-built
+version works and needs no extra tools.
+
+## Check Your Setup {-}
+
+With your project open, run this in the **Console**:
+
+
+``` r
+list.files(recursive = TRUE)
+library(tidyverse)
+rdm <- read_csv("data/rdm.csv")
+rdm
+```
+
+You should see your three files listed with their folders, followed by the first rows of
+the data. If `read_csv()` says the file does not exist, it is probably still in your
+Downloads folder. If `library(tidyverse)` says there is no such package, run the
+`install.packages()` line again.
+
+## Optional: The rtdists Package {-}
+
+A few chunks in the book check our own functions against the `rtdists` package. You do
+not need it to follow the book. If you would like to run those checks, install it once
+with
+
+
+``` r
+install.packages("rtdists")
+```
