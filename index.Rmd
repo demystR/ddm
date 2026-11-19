@@ -1,0 +1,71 @@
+--- 
+title: "The Drift Diffusion Model From Scratch"
+author: "Sean Westwood"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+documentclass: book
+description: |
+  Building the drift diffusion model from its equations, in R, one piece at a time:
+  first for perceptual decisions, then for value-based ones.
+---
+
+# Overview {-}
+
+**Author:** Sean Westwood
+
+This book is part of the *demyster* series, which builds the models used in psychology
+from scratch in R so that none of them has to be a black box.
+
+The drift diffusion model (DDM) is one of the most widely used models of how people make
+two-choice decisions. It explains two things at once: which option someone chooses, and
+how long they take to choose it. It is usually fitted with a package, and the package
+becomes a black box: data go in, parameters come out.
+
+This book builds the model from scratch instead. Every part of it is shown three ways:
+
+- **the equation**: what the model says, in mathematical notation;
+- **the code**: the same thing written in R, usually one line per term of the equation;
+- **the picture**: a figure showing what that code does.
+
+<div class="summary-box">
+If you can point at a term in an equation, find the line of code that computes it, and
+see what it does in a figure, you understand that part of the model. The book is built
+so that you can do that for every part of the DDM.
+</div>
+
+By the end of Part 1 you will have written:
+
+- a simulator that produces decisions one small step at a time;
+- the formula for the probability of each response at each response time;
+- a function that fits the model to data by maximum likelihood;
+- checks that the fitted model describes the data, and that the fitting recovers known values.
+
+## Who This Book Is For {-}
+
+You should be comfortable with basic R, including the tidyverse (`dplyr` pipelines and
+`ggplot2`), and with the idea of a probability distribution. The model itself is written
+in plain R, one line per term of each equation, so you can see every calculation. You do not need to know any calculus: the
+book introduces the little it uses from the beginning, and an appendix goes further for
+anyone who wants to.
+
+## How The Book Is Organised {-}
+
+**Part 1: Perceptual Decisions.** The model is built and fitted using a random-dot
+motion task, where people decide whether a cloud of dots is moving left or right. This
+is the task the DDM is most often taught with, and each of its parameters matches
+something about the task that is easy to picture.
+
+**Part 2: Value-Based Decisions.** The same model is applied to choices between options
+of different value, where the drift depends on how much better one option is than the
+other.
+
+**Later chapters** add models fitted to a whole group at once (hierarchical models).
+
+The chapters shown in red in the contents have not been written yet; each one describes
+what it will cover.
+
+## The Data {-}
+
+The data in Part 1 are simulated, with known true parameter values, so you can always
+check whether a fit recovered what was put in. The script that made them is
+`data-raw/simulate_rdm.R` in the book's repository.

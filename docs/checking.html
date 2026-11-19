@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 6 Checking A Fit | The Drift Diffusion Model From Scratch</title>
+<meta name="author" content="Sean Westwood">
+<meta name="description" content="A fit always returns numbers. This chapter asks two questions before trusting them: Does the fitted model describe the data? Simulate data from the fitted values and compare them with the real...">
+<meta name="generator" content="bookdown 0.47 with bs4_book()">
+<meta property="og:title" content="Chapter 6 Checking A Fit | The Drift Diffusion Model From Scratch">
+<meta property="og:type" content="book">
+<meta property="og:description" content="A fit always returns numbers. This chapter asks two questions before trusting them: Does the fitted model describe the data? Simulate data from the fitted values and compare them with the real...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 6 Checking A Fit | The Drift Diffusion Model From Scratch">
+<meta name="twitter:description" content="A fit always returns numbers. This chapter asks two questions before trusting them: Does the fitted model describe the data? Simulate data from the fitted values and compare them with the real...">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.10.0/transition.js"></script><script src="libs/bs3compat-0.10.0/tabs.js"></script><script src="libs/bs3compat-0.10.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><!-- Add site-wide head content here (e.g. your own analytics tag). Left empty on purpose. --><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="include/psyteachr.css">
+<link rel="stylesheet" href="include/webex.css">
+<link rel="stylesheet" href="include/style.css">
+<link rel="stylesheet" href="ddm.css">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">The Drift Diffusion Model From Scratch</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Overview</a></li>
+<li><a class="" href="getting-started.html">Getting Started</a></li>
+<li class="book-part">Perceptual Decisions</li>
+<li><a class="" href="the-idea.html"><span class="header-section-number">1</span> The Idea</a></li>
+<li><a class="" href="step-by-step.html"><span class="header-section-number">2</span> One Step At A Time</a></li>
+<li><a class="" href="predictions.html"><span class="header-section-number">3</span> What The Model Predicts</a></li>
+<li><a class="" href="paths-to-distributions.html"><span class="header-section-number">4</span> From Paths To Distributions</a></li>
+<li><a class="" href="fitting.html"><span class="header-section-number">5</span> Fitting The Model</a></li>
+<li><a class="active" href="checking.html"><span class="header-section-number">6</span> Checking A Fit</a></li>
+<li><a class="" href="selective-influence.html"><span class="header-section-number">7</span> Selective Influence</a></li>
+<li><a class="" href="real-data.html"><span class="header-section-number">8</span> Real Data</a></li>
+<li class="book-part">Value-Based Decisions</li>
+<li><a class="" href="value-as-drift.html"><span class="header-section-number">9</span> Value As Drift</a></li>
+<li><a class="" href="deadlines-lapses.html"><span class="header-section-number">10</span> Deadlines And Lapses</a></li>
+<li><a class="" href="two-attributes.html"><span class="header-section-number">11</span> Wins And Losses</a></li>
+<li><a class="" href="design-recovery.html"><span class="header-section-number">12</span> Designing A Study By Simulation</a></li>
+<li class="book-part">Group-Level Models</li>
+<li><a class="" href="hierarchical.html"><span class="header-section-number">13</span> Hierarchical Models</a></li>
+<li class="book-part">Appendix</li>
+<li><a class="" href="calculus.html"><span class="header-section-number">A</span> The Calculus Behind The Notation</a></li>
+</ul>
+
+        <div class="book-extra">
+          
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="checking" class="section level1" number="6">
+<h1>
+<span class="header-section-number">6</span> Checking A Fit<a class="anchor" aria-label="anchor" href="#checking"><i class="fas fa-link"></i></a>
+</h1>
+<p>A fit always returns numbers. This chapter asks two questions before trusting them:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Does the fitted model describe the data?</strong> Simulate data from the fitted values and
+compare them with the real data.</li>
+<li>
+<strong>Can the fitting recover known values?</strong> Fit data whose true values are known and
+compare the estimates with the truth.</li>
+</ol>
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html">read_csv</a></span><span class="op">(</span><span class="st">"data/rdm.csv"</span>, show_col_types <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>upper <span class="op">=</span> <span class="va">response</span> <span class="op">==</span> <span class="st">"right"</span><span class="op">)</span></span>
+<span><span class="va">truth</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html">read_csv</a></span><span class="op">(</span><span class="st">"data/rdm_truth.csv"</span>, show_col_types <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p01</span> <span class="op">&lt;-</span> <span class="va">rdm</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">participant</span> <span class="op">==</span> <span class="st">"P01"</span>, <span class="va">instruction</span> <span class="op">==</span> <span class="st">"accuracy"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">fit_p01</span> <span class="op">&lt;-</span> <span class="fu">fit_rdm</span><span class="op">(</span><span class="va">p01</span><span class="op">)</span>    <span class="co"># fit_rdm() from "Fitting the Model", saved in R/ddm_functions.R</span></span></code></pre></div>
+<div id="simulating-data-from-a-fit" class="section level2" number="6.1">
+<h2>
+<span class="header-section-number">6.1</span> Simulating Data From A Fit<a class="anchor" aria-label="anchor" href="#simulating-data-from-a-fit"><i class="fas fa-link"></i></a>
+</h2>
+<p>To simulate data from a set of parameter values we need a way to draw responses and RTs
+from the model. The step-by-step simulator of Chapter <a href="step-by-step.html#step-by-step">2</a> works, but is
+slow. A faster way uses the density directly:</p>
+<ol style="list-style-type: decimal">
+<li>divide time into narrow bins (half a millisecond wide);</li>
+<li>use <code>ddm_density()</code> to get the probability of each response in each bin;</li>
+<li>draw bins at random with those probabilities.</li>
+</ol>
+<p>This is sampling from the distribution the formula describes, so it needs no time steps
+and no paths. <code>ddm_sample()</code> in <code>R/ddm_functions.R</code> does this, with one set of parameter
+values per trial:</p>
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu">ddm_sample</span><span class="op">(</span>v <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">5</span><span class="op">)</span>, a <span class="op">=</span> <span class="fl">1.2</span>, z <span class="op">=</span> <span class="fl">0.5</span>, t0 <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span>
+<span><span class="va">sim</span></span></code></pre></div>
+<div class="kable-table">
+<div class="inline-table"><table class="table table-sm">
+<thead><tr class="header">
+<th align="left">upper</th>
+<th align="right">rt</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">FALSE</td>
+<td align="right">0.402</td>
+</tr>
+<tr class="even">
+<td align="left">TRUE</td>
+<td align="right">0.684</td>
+</tr>
+<tr class="odd">
+<td align="left">TRUE</td>
+<td align="right">1.111</td>
+</tr>
+<tr class="even">
+<td align="left">TRUE</td>
+<td align="right">0.442</td>
+</tr>
+<tr class="odd">
+<td align="left">TRUE</td>
+<td align="right">0.495</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<div id="does-the-model-describe-the-data" class="section level2" number="6.2">
+<h2>
+<span class="header-section-number">6.2</span> Does The Model Describe The Data?<a class="anchor" aria-label="anchor" href="#does-the-model-describe-the-data"><i class="fas fa-link"></i></a>
+</h2>
+<p>We simulate P01's 300 trials twenty times from the fitted values and compare the
+simulated data with the real data on two features:</p>
+<ul>
+<li>how often each response was correct, at each coherence level;</li>
+<li>the shape of the RT distribution, summarised by the 0.1, 0.3, 0.5, 0.7 and 0.9 RT
+quantiles, for correct responses and errors separately.</li>
+</ul>
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Simulate the same trials n_rep times from a set of fitted values</span></span>
+<span><span class="va">simulate_from_fit</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">par</span>, <span class="va">data</span>, <span class="va">n_rep</span> <span class="op">=</span> <span class="fl">20</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html">map_dfr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">n_rep</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">r</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">v</span> <span class="op">&lt;-</span> <span class="fu">make_drift</span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="fl">4</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span>, <span class="va">data</span><span class="op">$</span><span class="va">coherence</span>, <span class="va">data</span><span class="op">$</span><span class="va">direction</span><span class="op">)</span></span>
+<span>    <span class="va">s</span> <span class="op">&lt;-</span> <span class="fu">ddm_sample</span><span class="op">(</span><span class="va">v</span>, <span class="va">par</span><span class="op">[[</span><span class="st">"a"</span><span class="op">]</span><span class="op">]</span>, <span class="va">par</span><span class="op">[[</span><span class="st">"z"</span><span class="op">]</span><span class="op">]</span>, <span class="va">par</span><span class="op">[[</span><span class="st">"t0"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>coherence <span class="op">=</span> <span class="va">data</span><span class="op">$</span><span class="va">coherence</span>, direction <span class="op">=</span> <span class="va">data</span><span class="op">$</span><span class="va">direction</span>, upper <span class="op">=</span> <span class="va">s</span><span class="op">$</span><span class="va">upper</span>, rt <span class="op">=</span> <span class="va">s</span><span class="op">$</span><span class="va">rt</span><span class="op">)</span></span>
+<span>  <span class="op">}</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>correct <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="va">upper</span> <span class="op">==</span> <span class="op">(</span><span class="va">direction</span> <span class="op">==</span> <span class="st">"right"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="co"># For each coherence level and correct/error: how often, and the RT quantiles</span></span>
+<span><span class="va">summarise_cells</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">d</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">d</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">coherence</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>n_coherence <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">coherence</span>, <span class="va">correct</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/reframe.html">reframe</a></span><span class="op">(</span>prop <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/nth.html">first</a></span><span class="op">(</span><span class="va">n_coherence</span><span class="op">)</span>,</span>
+<span>            quantile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">0.5</span>, <span class="fl">0.7</span>, <span class="fl">0.9</span><span class="op">)</span>,</span>
+<span>            rt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">rt</span>, <span class="va">quantile</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">cells</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html">bind_rows</a></span><span class="op">(</span></span>
+<span>  observed <span class="op">=</span> <span class="fu">summarise_cells</span><span class="op">(</span><span class="va">p01</span><span class="op">)</span>,</span>
+<span>  model    <span class="op">=</span> <span class="fu">summarise_cells</span><span class="op">(</span><span class="fu">simulate_from_fit</span><span class="op">(</span><span class="va">fit_p01</span><span class="op">$</span><span class="va">par</span>, <span class="va">p01</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  .id <span class="op">=</span> <span class="st">"source"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">cells</span><span class="op">)</span></span></code></pre></div>
+<div class="kable-table">
+<div class="inline-table"><table class="table table-sm">
+<thead><tr class="header">
+<th align="left">source</th>
+<th align="right">coherence</th>
+<th align="right">correct</th>
+<th align="right">prop</th>
+<th align="right">quantile</th>
+<th align="right">rt</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">observed</td>
+<td align="right">0.064</td>
+<td align="right">0</td>
+<td align="right">0.36</td>
+<td align="right">0.1</td>
+<td align="right">0.507</td>
+</tr>
+<tr class="even">
+<td align="left">observed</td>
+<td align="right">0.064</td>
+<td align="right">0</td>
+<td align="right">0.36</td>
+<td align="right">0.3</td>
+<td align="right">0.634</td>
+</tr>
+<tr class="odd">
+<td align="left">observed</td>
+<td align="right">0.064</td>
+<td align="right">0</td>
+<td align="right">0.36</td>
+<td align="right">0.5</td>
+<td align="right">0.793</td>
+</tr>
+<tr class="even">
+<td align="left">observed</td>
+<td align="right">0.064</td>
+<td align="right">0</td>
+<td align="right">0.36</td>
+<td align="right">0.7</td>
+<td align="right">1.120</td>
+</tr>
+<tr class="odd">
+<td align="left">observed</td>
+<td align="right">0.064</td>
+<td align="right">0</td>
+<td align="right">0.36</td>
+<td align="right">0.9</td>
+<td align="right">1.513</td>
+</tr>
+<tr class="even">
+<td align="left">observed</td>
+<td align="right">0.064</td>
+<td align="right">1</td>
+<td align="right">0.64</td>
+<td align="right">0.1</td>
+<td align="right">0.528</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">cells</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">prop</span>, y <span class="op">=</span> <span class="va">rt</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">cells</span>, <span class="va">source</span> <span class="op">==</span> <span class="st">"model"</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>group <span class="op">=</span> <span class="va">quantile</span><span class="op">)</span>, colour <span class="op">=</span> <span class="st">"steelblue"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="va">source</span>, colour <span class="op">=</span> <span class="va">source</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">2.5</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_shape_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>model <span class="op">=</span> <span class="fl">4</span>, observed <span class="op">=</span> <span class="fl">19</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_colour_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>model <span class="op">=</span> <span class="st">"steelblue"</span>, observed <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_cartesian.html">coord_cartesian</a></span><span class="op">(</span>xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"response proportion"</span>, y <span class="op">=</span> <span class="st">"RT quantile (s)"</span>, shape <span class="op">=</span> <span class="cn">NULL</span>, colour <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>       title <span class="op">=</span> <span class="st">"P01: observed and model"</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="1f-checking_files/figure-html/ppc-plot-1.png" alt="" width="100%" style="display: block; margin: auto;"></div>
+<p>This is a <strong>quantile-probability plot</strong>. Black dots are the observed data and blue
+crosses the model. Each column of points is one combination of coherence and
+correctness: the three columns on the right are correct responses (at 6.4%, 12.8% and
+25.6% coherence, from left to right), and the three on the left are the matching
+errors. A column's horizontal position is how often that kind of response
+happened, and its five points are the RT quantiles, from fast (bottom) to slow (top).</p>
+<p>The blue lines join the model's matching quantiles across the columns. Where the
+model's crosses fall on the observed dots, the model reproduces both how often
+and how fast each kind of response was made. The error columns are based on few trials
+(the fewer errors, the fewer RTs), so their upper quantiles are imprecise. A plot like
+this is better used to look for consistent patterns, such as errors being systematically
+slower than the model predicts, than to judge single points.</p>
+</div>
+<div id="can-the-fitting-recover-known-values" class="section level2" number="6.3">
+<h2>
+<span class="header-section-number">6.3</span> Can The Fitting Recover Known Values?<a class="anchor" aria-label="anchor" href="#can-the-fitting-recover-known-values"><i class="fas fa-link"></i></a>
+</h2>
+<p><strong>Parameter recovery</strong> asks: if the model is true, does fitting return the values that
+generated the data? Usually this is done by simulating data from a fit and refitting
+them. Here the data are already simulated, with known values, so fitting each of the 20
+participants' accuracy blocks is itself a recovery study.</p>
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">estimates</span> <span class="op">&lt;-</span> <span class="va">rdm</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">instruction</span> <span class="op">==</span> <span class="st">"accuracy"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html">nest</a></span><span class="op">(</span>data <span class="op">=</span> <span class="op">-</span><span class="va">participant</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>par <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">data</span>, \<span class="op">(</span><span class="va">d</span><span class="op">)</span> <span class="fu">fit_rdm</span><span class="op">(</span><span class="va">d</span>, n_starts <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">$</span><span class="va">par</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest_wider.html">unnest_wider</a></span><span class="op">(</span><span class="va">par</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html">pivot_longer</a></span><span class="op">(</span><span class="op">-</span><span class="va">participant</span>, names_to <span class="op">=</span> <span class="st">"parameter"</span>, values_to <span class="op">=</span> <span class="st">"estimate"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">true_values</span> <span class="op">&lt;-</span> <span class="va">truth</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/transmute.html">transmute</a></span><span class="op">(</span><span class="va">participant</span>, a <span class="op">=</span> <span class="va">a_accuracy</span>, <span class="va">z</span>, <span class="va">t0</span>,</span>
+<span>            v_064 <span class="op">=</span> <span class="va">k</span> <span class="op">*</span> <span class="fl">0.064</span>, v_128 <span class="op">=</span> <span class="va">k</span> <span class="op">*</span> <span class="fl">0.128</span>, v_256 <span class="op">=</span> <span class="va">k</span> <span class="op">*</span> <span class="fl">0.256</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html">pivot_longer</a></span><span class="op">(</span><span class="op">-</span><span class="va">participant</span>, names_to <span class="op">=</span> <span class="st">"parameter"</span>, values_to <span class="op">=</span> <span class="st">"true"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">recovery</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">estimates</span>, <span class="va">true_values</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"participant"</span>, <span class="st">"parameter"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">recovery</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">parameter</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>r <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span><span class="op">(</span><span class="va">true</span>, <span class="va">estimate</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="kable-table">
+<div class="inline-table"><table class="table table-sm">
+<thead><tr class="header">
+<th align="left">parameter</th>
+<th align="right">r</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">a</td>
+<td align="right">0.984</td>
+</tr>
+<tr class="even">
+<td align="left">t0</td>
+<td align="right">0.960</td>
+</tr>
+<tr class="odd">
+<td align="left">v_064</td>
+<td align="right">0.745</td>
+</tr>
+<tr class="even">
+<td align="left">v_128</td>
+<td align="right">0.635</td>
+</tr>
+<tr class="odd">
+<td align="left">v_256</td>
+<td align="right">0.896</td>
+</tr>
+<tr class="even">
+<td align="left">z</td>
+<td align="right">0.891</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">recovery</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">true</span>, y <span class="op">=</span> <span class="va">estimate</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html">geom_abline</a></span><span class="op">(</span>linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">parameter</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"true value"</span>, y <span class="op">=</span> <span class="st">"estimate"</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="1f-checking_files/figure-html/recovery-plot-1.png" alt="" width="100%" style="display: block; margin: auto;"></div>
+<p>Each point is one participant, and the dashed line is where estimate equals truth.
+Correlations above .75 are usually described as good recovery and above .90 as
+excellent (White et al., 2018).</p>
+<p>Here the boundary (<span class="math inline">\(r\)</span> = 0.98), the non-decision time
+(0.96) and the drift at the highest coherence
+(0.9) are recovered well. The drifts at the two lower coherence
+levels are recovered less well (0.75 and
+0.64). Each drift comes from only 100 trials, which gives it a
+standard error of about 0.13 (Chapter <a href="fitting.html#fitting">5</a>). That is large compared with how
+much the true drifts at those coherence levels differ between participants, so the
+estimates cannot sort people reliably even though they are centred on the right values.
+Chapter <a href="selective-influence.html#selective-influence">7</a> improves this by estimating one drift scale for all
+three coherence levels. Recovery depends on the design: fewer trials, more
+parameters, or effects that change from trial to trial all make it worse, so it has to
+be checked again for every new design. Part 2 does this for a value-based task.</p>
+<div class="note">
+<p><strong>With real data</strong>, the true values are unknown. The usual recovery check is then to fit
+each participant, simulate a new dataset from each fit with <code>ddm_sample()</code>, refit the
+simulated data, and compare the refitted values with the values used to simulate them.</p>
+</div>
+</div>
+<div id="reference-1" class="section level2" number="6.4">
+<h2>
+<span class="header-section-number">6.4</span> Reference<a class="anchor" aria-label="anchor" href="#reference-1"><i class="fas fa-link"></i></a>
+</h2>
+<p>White, C. N., Servant, M., &amp; Logan, G. D. (2018). Testing the validity of conflict
+drift-diffusion models for use in estimating cognitive processes: A parameter-recovery
+study. <em>Psychonomic Bulletin &amp; Review, 25</em>, 286-301.</p>
+
+</div>
+</div>
+<script>
+
+/* update total correct if #webex-total_correct exists */
+update_total_correct = function() {
+  console.log("webex: update total_correct");
+
+  if (t = document.getElementById("webex-total_correct")) {
+    var correct = document.getElementsByClassName("webex-correct").length;
+    var solvemes = document.getElementsByClassName("webex-solveme").length;
+    var radiogroups = document.getElementsByClassName("webex-radiogroup").length;
+    var selects = document.getElementsByClassName("webex-select").length;
+    
+    t.innerHTML = correct + " of " + (solvemes + radiogroups + selects) + " correct";
+  }
+}
+
+/* webex-solution button toggling function */
+b_func = function() {
+  console.log("webex: toggle hide");
+  
+  var cl = this.parentElement.classList;
+  if (cl.contains('open')) {
+    cl.remove("open");
+  } else {
+    cl.add("open");
+  }
+}
+
+/* function for checking solveme answers */
+solveme_func = function(e) {
+  console.log("webex: check solveme");
+
+  var real_answers = JSON.parse(this.dataset.answer);
+  var my_answer = this.value;
+  var cl = this.classList;
+  if (cl.contains("ignorecase")) {
+    my_answer = my_answer.toLowerCase();
+  }
+  if (cl.contains("nospaces")) {
+    my_answer = my_answer.replace(/ /g, "")
+  }
+
+  if (my_answer == "") {
+    cl.remove("webex-correct");
+    cl.remove("webex-incorrect");
+  } else if (real_answers.includes(my_answer)) {
+    cl.add("webex-correct");
+    cl.remove("webex-incorrect");
+  } else {
+    cl.add("webex-incorrect");
+    cl.remove("webex-correct");
+  }
+
+  // match numeric answers within a specified tolerance
+  if(this.dataset.tol > 0){
+    var tol = JSON.parse(this.dataset.tol);
+    var matches = real_answers.map(x => Math.abs(x - my_answer) < tol)
+    if (matches.reduce((a, b) => a + b, 0) > 0) {
+      cl.add("webex-correct");
+    } else {
+      cl.remove("webex-correct");
+    }
+  }
+
+  // added regex bit
+  if (cl.contains("regex")){
+    answer_regex = RegExp(real_answers.join("|"))
+    if (answer_regex.test(my_answer)) {
+      cl.add("webex-correct");
+    }
+  }
+
+  update_total_correct();
+}
+
+/* function for checking select answers */
+select_func = function(e) {
+  console.log("webex: check select");
+  
+  var cl = this.classList
+  
+  /* add style */
+  cl.remove("webex-incorrect");
+  cl.remove("webex-correct");
+  if (this.value == "answer") {
+    cl.add("webex-correct");
+  } else if (this.value != "blank") {
+    cl.add("webex-incorrect");
+  }
+  
+  update_total_correct();
+}
+
+/* function for checking radiogroups answers */
+radiogroups_func = function(e) {
+  console.log("webex: check radiogroups");
+
+  var checked_button = document.querySelector('input[name=' + this.id + ']:checked');
+  var cl = checked_button.parentElement.classList;
+  var labels = checked_button.parentElement.parentElement.children;
+  
+  /* get rid of styles */
+  for (i = 0; i < labels.length; i++) {
+    labels[i].classList.remove("webex-incorrect");
+    labels[i].classList.remove("webex-correct");
+  }
+  
+  /* add style */
+  if (checked_button.value == "answer") {
+    cl.add("webex-correct");
+  } else {
+    cl.add("webex-incorrect");
+  }
+  
+  update_total_correct();
+}
+
+window.onload = function() {
+  console.log("onload");
+  /* set up solution buttons */
+  var buttons = document.getElementsByTagName("button");
+
+  for (var i = 0; i < buttons.length; i++) {
+    if (buttons[i].parentElement.classList.contains('webex-solution')) {
+      buttons[i].onclick = b_func;
+    }
+  }
+
+  /* set up webex-solveme inputs */
+  var solveme = document.getElementsByClassName("webex-solveme");
+
+  for (var i = 0; i < solveme.length; i++) {
+    /* make sure input boxes don't auto-anything */
+    solveme[i].setAttribute("autocomplete","off");
+    solveme[i].setAttribute("autocorrect", "off");
+    solveme[i].setAttribute("autocapitalize", "off");
+    solveme[i].setAttribute("spellcheck", "false");
+    solveme[i].value = "";
+
+    /* adjust answer for ignorecase or nospaces */
+    var cl = solveme[i].classList;
+    var real_answer = solveme[i].dataset.answer;
+    if (cl.contains("ignorecase")) {
+      real_answer = real_answer.toLowerCase();
+    }
+    if (cl.contains("nospaces")) {
+      real_answer = real_answer.replace(/ /g, "");
+    }
+    solveme[i].dataset.answer = real_answer;
+
+    /* attach checking function */
+    solveme[i].onkeyup = solveme_func;
+    solveme[i].onchange = solveme_func;
+  }
+  
+  /* set up radiogroups */
+  var radiogroups = document.getElementsByClassName("webex-radiogroup");
+  for (var i = 0; i < radiogroups.length; i++) {
+    radiogroups[i].onchange = radiogroups_func;
+  }
+  
+  /* set up selects */
+  var selects = document.getElementsByClassName("webex-select");
+  for (var i = 0; i < selects.length; i++) {
+    selects[i].onchange = select_func;
+  }
+
+  update_total_correct();
+}
+
+</script><script>
+$( document ).ready(function() {
+  var cite = ' ';
+  var psyteachr = ' <a href="https://psyteachr.github.io/"><img src="images/logos/psyteachr_logo.png" style="height: 31px; color: white;" alt="psyTeachR: Reproducible Research" /></a>';
+  var license = ' <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/" target="blank"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png"></a>';
+
+  $("footer div.row div:eq(1) p").html(
+    psyteachr + license + cite
+  );
+});
+</script><div class="chapter-nav">
+<div class="prev"><a href="fitting.html"><span class="header-section-number">5</span> Fitting The Model</a></div>
+<div class="next"><a href="selective-influence.html"><span class="header-section-number">7</span> Selective Influence</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#checking"><span class="header-section-number">6</span> Checking A Fit</a></li>
+<li><a class="nav-link" href="#simulating-data-from-a-fit"><span class="header-section-number">6.1</span> Simulating Data From A Fit</a></li>
+<li><a class="nav-link" href="#does-the-model-describe-the-data"><span class="header-section-number">6.2</span> Does The Model Describe The Data?</a></li>
+<li><a class="nav-link" href="#can-the-fitting-recover-known-values"><span class="header-section-number">6.3</span> Can The Fitting Recover Known Values?</a></li>
+<li><a class="nav-link" href="#reference-1"><span class="header-section-number">6.4</span> Reference</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>The Drift Diffusion Model From Scratch</strong>" was written by Sean Westwood. It was last built on 2026-11-19.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>
