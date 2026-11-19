@@ -4,9 +4,10 @@
 .Ruserdata
 .Rproj.user/
 
-# bookdown and knitr build output (docs/ is committed for GitHub Pages)
+# bookdown and knitr build output (the book is built and deployed by GitHub Actions)
+docs/
 _bookdown_files/
-demyster-ddm.rds
+ddm.rds
 figure/
 *_cache/
 render*.rds

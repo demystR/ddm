@@ -13,8 +13,7 @@ description: |
 
 **Author:** Sean Westwood
 
-This book is part of the *demyster* series, which builds the models used in psychology
-from scratch in R so that none of them has to be a black box.
+Part of the [demystR](https://demystr.github.io) series.
 
 The drift diffusion model (DDM) is one of the most widely used models of how people make
 two-choice decisions. It explains two things at once: which option someone chooses, and
