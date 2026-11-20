@@ -20,6 +20,14 @@ theme_set(theme_minimal(base_size = 13))
 source("R/ddm_functions.R")
 source("R/ddm_plots.R")
 
+# Run a later chunk's code silently. Chapters show the equation, then the figure, then
+# the code; a figure chunk uses this to get the values that the code chunk below it
+# computes. The code chunks set their own seeds, so running them twice gives the same
+# numbers.
+run_chunk <- function(label) {
+  invisible(eval(parse(text = knitr::knit_code$get(label)), envir = knitr::knit_global()))
+}
+
 # rtdists is optional: chapters use it only to check our own functions.
 has_rtdists <- requireNamespace("rtdists", quietly = TRUE)
 
@@ -40,7 +48,7 @@ if (requireNamespace("webexercises", quietly = TRUE)) {
 }
 
 # Copy the data and functions into docs/ so the book can link to them.
-for (folder in c("data", "R")) {
+for (folder in c("data", "R", "exercises")) {
   dir.create(file.path("docs", folder), recursive = TRUE, showWarnings = FALSE)
   file.copy(list.files(folder, full.names = TRUE), file.path("docs", folder), overwrite = TRUE)
 }

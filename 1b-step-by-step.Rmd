@@ -6,15 +6,26 @@ is fitted: from Chapter \@ref(paths-to-distributions) onwards, choices and RTs a
 calculated from exact formulas, with no time steps and no simulated paths.
 
 The trial is built in four stages: one step, a few steps, steps until a boundary is
-reached, and then shorter and shorter steps. Each stage is shown three ways: the
-equation, the R code that carries it out, and a picture of the result. The settings are
+reached, and then shorter and shorter steps. The settings are
 $v = 1$, $a = 1.2$, $z = 0.5$ and $\sigma = 1$, with long steps of $\Delta t = 0.05$ s
 (50 ms) so that each step can be seen. A drift of 1 corresponds to fairly strong
 rightward motion.
 
+<div class="note">
+**Build it yourself**
+
+Download these two files and save them in your `ddm` project folder:
+
+- <a href="exercises/1b-step-by-step-exercises.Rmd" download>1b-step-by-step-exercises.Rmd</a>:
+  the steps of this chapter with blanks for you to fill in, ending with your own
+  simulator.
+- <a href="exercises/my_ddm.R" download>my_ddm.R</a>: your toolbox. Each function you
+  build goes in here, and later chapters reuse it.
+</div>
+
 ## Stage 1: One Step
 
-**Equation.** In one step of length $\Delta t$, the evidence changes by
+In one step of length $\Delta t$, the evidence changes by
 
 $$
 \underbrace{X_{\text{new}} - X_{\text{old}}}_{\text{change in one step}}
@@ -40,7 +51,19 @@ $$
   RTs. $\sqrt{\Delta t}$ converts this into the SD for one step (Section
   \@ref(why-sqrt) explains why it is the square root).
 
-**Code.** Each term of the equation is one line:
+```{r stage-1-plot, echo = FALSE, fig.height = 3.6, fig.width = 5.5}
+run_chunk("stage-1")
+par(mar = c(4, 4, 2.5, 1))
+draw_steps(c(0, dt), c(x_old, x_new), dt, v, xlim = c(-0.03, 0.25), ylim = c(0.3, 1.05),
+           title = "Stage 1: one step", label_first = TRUE)
+```
+
+The grey line is the drift part: where the total would go with no noise. The red arrow
+is the noise part. This draw of $\varepsilon$ was negative, so the noise pushed down by
+more than the drift pushed up, and the step ends slightly lower than it started. The dot
+at the end is the new total.
+
+In R, each term of the equation is one line. These are the values drawn above:
 
 ```{r stage-1}
 v <- 1; a <- 1.2; z <- 0.5; sigma <- 1
@@ -54,22 +77,9 @@ x_new      <- x_old + drift_part + noise_part
 c(x_old = x_old, drift_part = drift_part, noise_part = noise_part, x_new = x_new)
 ```
 
-**Picture.**
-
-```{r stage-1-plot, echo = FALSE, fig.height = 3.6, fig.width = 5.5}
-par(mar = c(4, 4, 2.5, 1))
-draw_steps(c(0, dt), c(x_old, x_new), dt, v, xlim = c(-0.03, 0.25), ylim = c(0.3, 1.05),
-           title = "Stage 1: one step", label_first = TRUE)
-```
-
-The grey line is the drift part: where the total would go with no noise. The red arrow
-is the noise part. This draw of $\varepsilon$ was negative, so the noise pushed down by
-more than the drift pushed up, and the step ends slightly lower than it started. The dot
-at the end is the new total.
-
 ## Stage 2: A Few Steps
 
-**Equation.** The end of one step is the start of the next. Numbering the steps
+The end of one step is the start of the next. Numbering the steps
 $k = 0, 1, 2, \dots$:
 
 $$
@@ -79,7 +89,17 @@ $$
 
 with a new, independent $\varepsilon_k$ on every step.
 
-**Code.** The same line inside a loop. Setting the same seed makes the first step
+```{r stage-2-plot, echo = FALSE, fig.height = 3.6, fig.width = 5.5}
+run_chunk("stage-2")
+par(mar = c(4, 4, 2.5, 1))
+draw_steps(dt * (0:n_steps), x, dt, v, xlim = c(-0.03, 0.3), ylim = c(0.3, 1.05),
+           title = "Stage 2: five steps")
+```
+
+The grey drift parts are the same on every step. The red noise parts differ in size and
+direction from step to step, so the total moves irregularly.
+
+The R version is the same line inside a loop. Setting the same seed makes the first step
 identical to stage 1.
 
 ```{r stage-2}
@@ -93,20 +113,9 @@ for (k in 1:n_steps) {
 round(x, 3)
 ```
 
-**Picture.**
-
-```{r stage-2-plot, echo = FALSE, fig.height = 3.6, fig.width = 5.5}
-par(mar = c(4, 4, 2.5, 1))
-draw_steps(dt * (0:n_steps), x, dt, v, xlim = c(-0.03, 0.3), ylim = c(0.3, 1.05),
-           title = "Stage 2: five steps")
-```
-
-The grey drift parts are the same on every step. The red noise parts differ in size and
-direction from step to step, so the total moves irregularly.
-
 ## Stage 3: Steps Until A Boundary
 
-**Equation.** Keep stepping until the total reaches a boundary. The trial ends at the
+Keep stepping until the total reaches a boundary. The trial ends at the
 first step $K$ where
 
 $$
@@ -115,7 +124,20 @@ $$
 
 and the decision time is $K \Delta t$.
 
-**Code.** The loop now runs until a boundary is reached, using `while`. This function is
+```{r stage-3-plot, echo = FALSE, fig.height = 3.6, fig.width = 6.5}
+run_chunk("simulator")
+par(mar = c(4, 4, 2.5, 1))
+tt <- dt * (seq_along(trial$path) - 1)
+draw_steps(tt, trial$path, dt, v, xlim = c(-0.03, max(tt) + 0.05), ylim = c(-0.05, a + 0.25),
+           title = "Stage 3: steps until a boundary", bounds = c(0, a))
+```
+
+The first five steps are those from stage 2. Over the following steps the noise pushes
+partly cancel out and the drift adds up, and the total passes the upper boundary: the
+response is "right", and the decision time is the time of the last step. The last step
+goes past the boundary because the total is checked only at the end of each step.
+
+The loop now runs until a boundary is reached, using `while`. This function is
 the simulator used in the rest of the book.
 
 ```{r simulator}
@@ -137,28 +159,30 @@ trial <- simulate_ddm_trial(v, a, z, t0 = 0, dt = dt, keep_path = TRUE)
 c(upper = trial$upper, decision_time = trial$rt, steps = length(trial$path) - 1)
 ```
 
-**Picture.**
-
-```{r stage-3-plot, echo = FALSE, fig.height = 3.6, fig.width = 6.5}
-par(mar = c(4, 4, 2.5, 1))
-tt <- dt * (seq_along(trial$path) - 1)
-draw_steps(tt, trial$path, dt, v, xlim = c(-0.03, max(tt) + 0.05), ylim = c(-0.05, a + 0.25),
-           title = "Stage 3: steps until a boundary", bounds = c(0, a))
-```
-
-The first five steps are those from stage 2. Over the following steps the noise pushes
-partly cancel out and the drift adds up, and the total passes the upper boundary: the
-response is "right", and the decision time is the time of the last step. The last step
-goes past the boundary because the total is checked only at the end of each step.
-
 ## Stage 4: The Same Trial With Shorter Steps
 
 Real decisions do not happen in 50 ms jumps. The figure below shows what happens as the
 steps get shorter, using one trial drawn at three step sizes. This is a new trial, not
 the one from stage 3.
 
-To draw the same trial at several step sizes, the random numbers are generated once, at
-1 ms resolution. The noise in one 50 ms step is then the sum of the 50 one-millisecond
+```{r stage-4-plot, echo = FALSE, fig.height = 3.6, fig.width = 10}
+run_chunk("stage-4")
+par(mfrow = c(1, 3), mar = c(4, 4, 3, 1))
+draw_path(p50, p1, a, expression(Delta * t == 50 ~ ms))
+draw_path(p10, p1, a, expression(Delta * t == 10 ~ ms))
+draw_path(p1,  p1, a, expression(Delta * t == 1 ~ ms))
+```
+
+The grey line in each panel is the 1 ms version. As the steps get shorter, each step's
+drift part shrinks in proportion to $\Delta t$ and each step's noise part in proportion
+to $\sqrt{\Delta t}$. The path picks up finer detail but keeps the same overall course,
+and the time at which it reaches the boundary settles down
+(`r round(1000 * max(p50$t))`, `r round(1000 * max(p10$t))` and
+`r round(1000 * max(p1$t))` ms here). With long steps the boundary crossing is detected
+late, because the total is only checked at the end of each step.
+
+To draw the same trial at several step sizes, the random numbers are
+generated once, at 1 ms resolution. The noise in one 50 ms step is then the sum of the 50 one-millisecond
 noise values inside it. That sum is itself a draw from a normal distribution with mean 0
 and SD $\sigma\sqrt{0.05}$, which is what the step equation requires.
 
@@ -180,21 +204,6 @@ p50 <- step_path(0.05)
 p10 <- step_path(0.01)
 p1  <- step_path(0.001)
 ```
-
-```{r stage-4-plot, echo = FALSE, fig.height = 3.6, fig.width = 10}
-par(mfrow = c(1, 3), mar = c(4, 4, 3, 1))
-draw_path(p50, p1, a, expression(Delta * t == 50 ~ ms))
-draw_path(p10, p1, a, expression(Delta * t == 10 ~ ms))
-draw_path(p1,  p1, a, expression(Delta * t == 1 ~ ms))
-```
-
-The grey line in each panel is the 1 ms version. As the steps get shorter, each step's
-drift part shrinks in proportion to $\Delta t$ and each step's noise part in proportion
-to $\sqrt{\Delta t}$. The path picks up finer detail but keeps the same overall course,
-and the time at which it reaches the boundary settles down
-(`r round(1000 * max(p50$t))`, `r round(1000 * max(p10$t))` and
-`r round(1000 * max(p1$t))` ms here). With long steps the boundary crossing is detected
-late, because the total is only checked at the end of each step.
 
 ## Why The Noise Is Scaled By The Square Root {#why-sqrt}
 
@@ -248,7 +257,17 @@ times smaller, so check which convention a paper used before comparing numbers.
 Running the simulator again gives a different trial each time, because the noise is
 different. Eight trials with 1 ms steps:
 
-```{r paths-plot, fig.height = 3.8}
+```{r paths-plot, ref.label = "paths-code", echo = FALSE, fig.height = 3.8}
+```
+
+Because $v > 0$, most trials end at the upper boundary, but a few reach the lower one by
+chance: these are errors. Trials that take a long time to reach a boundary make up the
+long right tail of the RT distribution.
+
+Each trial is run with `simulate_ddm_trial()`, and its path is stored as one row
+per time step, so all eight can be drawn with `ggplot()`:
+
+```{r paths-code, eval = FALSE}
 eight_trials <- map_dfr(1:8, function(i) {
   tr <- simulate_ddm_trial(v = 1, a = 1.2, z = 0.5, t0 = 0, keep_path = TRUE)
   tibble(trial = i,
@@ -265,7 +284,5 @@ ggplot(eight_trials, aes(x = time, y = evidence, group = trial, colour = respons
        title = "Eight simulated trials (v = 1, a = 1.2, z = 0.5)")
 ```
 
-Because $v > 0$, most trials end at the upper boundary, but a few reach the lower one by
-chance: these are errors. Trials that take a long time to reach a boundary make up the
-long right tail of the RT distribution. Chapter \@ref(paths-to-distributions) continues
-from here, from a few trials to thousands.
+Chapter \@ref(paths-to-distributions) continues from here, from a few trials to
+thousands.

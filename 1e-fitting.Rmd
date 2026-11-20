@@ -44,7 +44,7 @@ $$
 
 $r_i$ is trial $i$'s response (which boundary) and $v_i$ its drift.
 
-**Code.** The drift for each trial is built as a vector, and `ddm_density()` does the
+The drift for each trial is built as a vector, and `ddm_density()` does the
 rest:
 
 ```{r loglik}

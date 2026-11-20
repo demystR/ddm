@@ -1,0 +1,241 @@
+---
+title: "Exercises: One Step At A Time"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# error = TRUE lets the file knit even if one of your chunks is not finished yet
+knitr::opts_chunk$set(error = TRUE)
+```
+
+Work through this file alongside the chapter "One Step At A Time" in the book. Run each
+chunk with the green arrow in its top right corner, or put your cursor inside it and
+press Ctrl + Shift + Enter (Cmd + Shift + Enter on a Mac).
+
+By the end you will have written two functions: `my_step()`, which moves the evidence
+on by one step, and `my_simulate_trial()`, which keeps stepping until a decision is made.
+Both go into your toolbox, `my_ddm.R`, so you can use them in later chapters.
+
+## Set up
+
+Run this chunk first. It loads the tidyverse and sets the values used in the chapter.
+
+```{r setup-values}
+library(tidyverse)
+
+v <- 1        # drift rate
+a <- 1.2      # boundary separation
+z <- 0.5      # starting point, as a proportion of a
+sigma <- 1    # size of the noise over one second
+dt <- 0.05    # step length in seconds (50 ms)
+```
+
+## Part 1: One step
+
+### The equation
+
+In one step of length $\Delta t$, the evidence changes by
+
+$$
+X_{\text{new}} = X_{\text{old}} + \underbrace{v\,\Delta t}_{\text{drift part}}
++ \underbrace{\sigma\sqrt{\Delta t}\;\varepsilon}_{\text{noise part}},
+\qquad \varepsilon \sim N(0,1).
+$$
+
+Before writing any code, work out two things by hand with the values above.
+
+- The drift part, $v\,\Delta t$, is ____.
+- The noise part is a draw from a normal distribution with mean 0 and SD
+  $\sigma\sqrt{\Delta t}$. Roughly how big is a typical noise push? (Hint: $\sqrt{0.05}$
+  is a bit more than 0.2.)
+
+Which part do you expect to be bigger on a single step?
+
+### The picture
+
+In the book's Stage 1 figure, the grey line is the drift part and the red arrow is the
+noise part. Look back at it and check your answer to the last question.
+
+### The code
+
+Your turn: write each term of the equation on its own line. `rnorm(1)` gives you one
+value of $\varepsilon$. Setting the seed to 58 means you should get the same numbers as
+the book.
+
+```{r one-step}
+set.seed(58)
+
+x_old      <- z * a
+drift_part <-
+noise_part <-
+x_new      <-
+
+c(x_old = x_old, drift_part = drift_part, noise_part = noise_part, x_new = x_new)
+```
+
+You should get `x_new` of about 0.55: the noise pushed down by more than the drift pushed
+up.
+
+### Your turn: write `my_step()`
+
+Turn your lines into a function. It takes the current evidence `x` and the parameters,
+and returns the evidence after one step.
+
+```{r my-step}
+my_step <- function(x, v, dt, sigma = 1) {
+  drift_part <-
+  noise_part <-
+  x_new <-
+  return(x_new)
+}
+
+set.seed(58)
+my_step(x = z * a, v = v, dt = dt)
+```
+
+You should get the same answer as above. When it works, copy `my_step()` into
+`my_ddm.R` under "One Step At A Time".
+
+## Part 2: A few steps
+
+### The equation
+
+The end of one step is the start of the next:
+
+$$
+X_{k+1} = X_k + v\,\Delta t + \sigma\sqrt{\Delta t}\;\varepsilon_k,
+\qquad X_0 = z\,a.
+$$
+
+The small $k$ counts the steps: $X_0$ is the start, $X_1$ is after one step, and so on.
+There is a new $\varepsilon_k$ on every step.
+
+### The code
+
+Your turn: use `my_step()` inside a `for` loop to take five steps. `x[1]` holds $X_0$,
+so `x[k + 1]` holds $X_k$.
+
+```{r five-steps}
+set.seed(58)
+n_steps <- 5
+x <- numeric(n_steps + 1)
+x[1] <- z * a
+for (k in 1:n_steps) {
+  x[k + 1] <-
+}
+round(x, 3)
+```
+
+The first two numbers should match Part 1.
+
+### Check: draw your steps
+
+Draw your five steps and compare them with the book's Stage 2 figure. Each row of the tibble is one moment in time.
+
+```{r five-steps-plot}
+steps <- tibble(time = dt * (0:n_steps), evidence = x)
+
+ggplot(steps, aes(x = time, y = evidence)) +
+  geom_step(colour = "grey50") +
+  geom_point() +
+  labs(x = "time (s)", y = "evidence X")
+```
+
+## Part 3: Steps until a boundary
+
+### The equation
+
+The trial ends at the first step $K$ where the evidence reaches a boundary:
+
+$$
+X_K \ge a \quad (\text{response "right"}) \qquad \text{or} \qquad X_K \le 0 \quad (\text{response "left"}),
+$$
+
+and the decision time is $K \Delta t$.
+
+### The code
+
+A `for` loop needs to know how many steps to take. Here we do not know that in advance,
+so we use a `while` loop instead: it repeats for as long as its condition is `TRUE`.
+
+Your turn: fill in the condition (the evidence is above 0 **and** below `a`) and the two
+lines inside the loop.
+
+```{r my-simulate-trial}
+my_simulate_trial <- function(v, a, z, dt = 0.001, sigma = 1) {
+  x <- z * a
+  t <- 0
+  while (   ) {
+    x <-
+    t <-
+  }
+  list(upper = x >= a, decision_time = t)
+}
+
+set.seed(58)
+my_simulate_trial(v, a, z, dt = 0.05)
+```
+
+With the seed set to 58 you should get the book's Stage 3 trial: an upper response
+after 0.5 s (ten steps). When it works, copy `my_simulate_trial()` into `my_ddm.R`.
+
+## Part 4: Many trials
+
+Run your simulator 1000 times with 1 ms steps. `map_dfr()` runs the function once for
+each number in `1:1000` and stacks the results into one tibble.
+
+```{r many-trials}
+set.seed(1)
+trials <- map_dfr(1:1000, \(i) as_tibble(my_simulate_trial(v, a, z)))
+
+trials %>%
+  summarise(p_upper = mean(upper), mean_dt = mean(decision_time))
+```
+
+Before you run the next chunk, predict: what will happen to `p_upper` and `mean_dt` if
+you double the drift rate? Then change `v` to 2 and check.
+
+```{r double-drift}
+set.seed(1)
+trials_v2 <- map_dfr(1:1000, \(i) as_tibble(my_simulate_trial(v = 2, a, z)))
+
+trials_v2 %>%
+  summarise(p_upper = mean(upper), mean_dt = mean(decision_time))
+```
+
+Now try a wider boundary (`a = 1.6`) with the original drift. Which goes up: accuracy,
+decision time, or both? You will see the exact answers in the next chapter, where two
+formulas replace these simulations.
+
+<details>
+<summary>Solutions</summary>
+
+```r
+# Part 1
+drift_part <- v * dt
+noise_part <- sigma * sqrt(dt) * rnorm(1)
+x_new      <- x_old + drift_part + noise_part
+
+my_step <- function(x, v, dt, sigma = 1) {
+  drift_part <- v * dt
+  noise_part <- sigma * sqrt(dt) * rnorm(1)
+  x_new <- x + drift_part + noise_part
+  return(x_new)
+}
+
+# Part 2
+x[k + 1] <- my_step(x[k], v, dt)
+
+# Part 3
+my_simulate_trial <- function(v, a, z, dt = 0.001, sigma = 1) {
+  x <- z * a
+  t <- 0
+  while (x > 0 && x < a) {
+    x <- my_step(x, v, dt, sigma)
+    t <- t + dt
+  }
+  list(upper = x >= a, decision_time = t)
+}
+```
+
+</details>

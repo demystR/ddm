@@ -7,14 +7,14 @@ them to see how drift and caution shape behaviour.
 
 ## The Probability Of Each Response
 
-**Equation.** With $\sigma = 1$ and a starting point of $z a$, the probability of
+With $\sigma = 1$ and a starting point of $z a$, the probability of
 reaching the upper boundary is
 
 $$
 P(\text{upper}) = \frac{1 - e^{-2 v a z}}{1 - e^{-2 v a}}.
 $$
 
-**Code.**
+As an R function of the three parameters:
 
 ```{r p-upper}
 p_upper <- function(v, a, z) {
@@ -26,13 +26,13 @@ p_upper(v = 1, a = 1.2, z = 0.5)
 
 ## The Mean Decision Time
 
-**Equation.** With an unbiased start ($z = 0.5$), the mean decision time is
+With an unbiased start ($z = 0.5$), the mean decision time is
 
 $$
 E[T_{decision}] = \frac{a}{2v}\tanh\!\left(\frac{a v}{2}\right).
 $$
 
-**Code.**
+And as a function of $v$ and $a$:
 
 ```{r mean-dt}
 mean_dt <- function(v, a) {
@@ -79,9 +79,19 @@ choice, with $a \cdot v$ in place of the linear predictor. Two consequences foll
 - RTs separate the two, because a larger $a$ makes choices slower and more consistent,
   while a larger $v$ makes them faster and more consistent.
 
-**Picture.**
+```{r tradeoff-plot, ref.label = "tradeoff-code", echo = FALSE, fig.height = 3.6, fig.width = 8}
+```
 
-```{r tradeoff-plot, fig.height = 3.6, fig.width = 8}
+In random-dot terms: stronger motion in either direction (larger $|v|$) makes responses
+more consistent and faster. A wider boundary ($a = 1.6$, as in accuracy blocks) makes
+them more consistent but slower at every coherence. Decision time is longest when there
+is no coherent motion ($v = 0$). This is the speed-accuracy trade-off from Chapter
+\@ref(the-idea), produced by a single parameter.
+
+The two formulas are calculated over a grid of drift values for two boundary
+widths, then drawn side by side:
+
+```{r tradeoff-code, eval = FALSE}
 predictions <- expand_grid(a = c(0.9, 1.6), v = seq(-3, 3, 0.1)) |>
   mutate(`P(right)`                = map2_dbl(v, a, \(v, a) p_upper(v, a, z = 0.5)),
          `mean decision time (s)` = map2_dbl(v, a, mean_dt),
@@ -95,9 +105,3 @@ ggplot(predictions, aes(x = v, y = value, colour = boundary)) +
   labs(x = "drift v", y = NULL, colour = NULL) +
   theme(legend.position = "bottom")
 ```
-
-In random-dot terms: stronger motion in either direction (larger $|v|$) makes responses
-more consistent and faster. A wider boundary ($a = 1.6$, as in accuracy blocks) makes
-them more consistent but slower at every coherence. Decision time is longest when there
-is no coherent motion ($v = 0$). This is the speed-accuracy trade-off from Chapter
-\@ref(the-idea), produced by a single parameter.

@@ -1,26 +1,48 @@
 # From Paths To Distributions {#paths-to-distributions}
 
-Fitting the model requires, for each trial, the probability density of the observed
-response at the observed time, given the parameters. This is the **first-passage time
-density**: the density of the time at which $X$ first reaches a particular boundary.
-This chapter builds it up the long way first, from simulated paths, and then gives the
-formula that calculates it directly.
+## Why We Need This Chapter
+
+Chapter \@ref(predictions) gave two formulas: the probability of each response, and the
+mean decision time. They summarise what the model predicts over many trials. Data do
+not arrive as summaries, though. Each trial in the experiment is one response at one
+time: "right after 0.62 s", "left after 0.91 s", and so on.
+
+To fit the model in Chapter \@ref(fitting), we need to ask a question about each trial:
+**if the parameters were these values, how likely is this exact trial?** Then we can try
+different parameter values and keep the ones that make the trials we actually saw most
+likely.
+
+For the response on its own, the answer is a probability, which Chapter
+\@ref(predictions) already gives. RT is different, because it is measured on a
+continuous scale. The probability of an RT of exactly 0.62000... s is zero, just as the
+probability that someone is exactly 170.000... cm tall is zero. What we can say is how
+densely the trials are packed around 0.62 s. That is a **probability density**. You can
+picture it as the height of a histogram of many RTs, once the histogram has been
+smoothed and scaled so that its total area is 1. A density of 2 at 0.62 s means that
+about $2 \times 0.01 = 0.02$, or 2%, of trials fall in the 10 ms window around 0.62 s.
+
+So for each trial we need the density of that response at that RT. This chapter gets it
+in two ways:
+
+1. **By simulation.** Simulate thousands of trials with the simulator from Chapter
+   \@ref(step-by-step) and draw a histogram of their RTs. This shows what the density
+   looks like, but it is slow and never exact: every run gives a slightly different
+   histogram. Fitting tries hundreds of different parameter values, so simulating
+   thousands of trials for each one would take too long, and the run-to-run noise would
+   confuse the search for the best values.
+2. **By formula.** A formula gives the same curve exactly, in a fraction of a second.
+
+The simulation comes first, because it shows what the formula is calculating.
 
 ## From Single Paths To RT Distributions
 
 Each simulated trial gives one path, and one path gives one result: which boundary it
 reached and when. Repeating the simulation many times with the same parameters gives
-many results, and their spread is the model's prediction for choices and RTs.
-
-`simulate_paths()` (in `R/ddm_functions.R`) runs many trials at once with the same step
-equation as Chapter \@ref(step-by-step), and keeps the first 200 paths for plotting.
-
-```{r simulate-paths}
-set.seed(1)
-paths_sim <- simulate_paths(n = 10000, v = 1, a = 1.2, z = 0.5)
-```
+many results, and their spread is the model's prediction for choices and RTs. The
+figure below uses $v = 1$, $a = 1.2$ and $z = 0.5$, as in Chapter \@ref(step-by-step).
 
 ```{r build-up-plot, echo = FALSE, fig.height = 7.5, fig.width = 8}
+run_chunk("simulate-paths")
 par(mfrow = c(2, 2), mar = c(4, 3, 2.5, 1))
 draw_build_up(paths_sim, 1,     1.2, "1 trial", labels = c("right", "left"))
 draw_build_up(paths_sim, 10,    1.2, "10 trials", labels = c("right", "left"))
@@ -43,41 +65,162 @@ boundary ("left") are orange.
   (`r round(mean(paths_sim$upper), 2)` here), and the area of the lower one is the rest.
 
 As more trials are simulated, the histograms settle on two fixed curves, one for each
-boundary. Those curves are the first-passage time densities. The formula below
-calculates them exactly, without simulating any paths.
+boundary. Those curves are the **first-passage time densities**: "first passage"
+because a trial ends the first time its path passes a boundary. The rest of the chapter
+builds a formula for them.
 
-## The Formula
+`simulate_paths()` (in `R/ddm_functions.R`) runs many trials at once with the
+same step equation as Chapter \@ref(step-by-step), and keeps the first 200 paths for
+plotting.
 
-For the lower boundary, with $\sigma = 1$ and decision time $t = \text{RT} - T_{er}$:
+```{r simulate-paths}
+set.seed(1)
+paths_sim <- simulate_paths(n = 10000, v = 1, a = 1.2, z = 0.5)
+```
+
+## Building The Formula
+
+The full formula looks heavy, but it is made of a few simple pieces. We start with the
+simplest possible process and add one parameter at a time. Throughout, $t$ is the
+decision time, $\text{RT} - T_{er}$, and $\sigma = 1$. We work on the lower boundary
+first, and the upper boundary follows at the end.
+
+The quantity we want is written
+
+$$
+f_{\text{lower}}(t \mid v, a, z).
+$$
+
+Read this as "the density of reaching the lower boundary at time $t$, given the
+parameters $v$, $a$ and $z$". The vertical bar means "given". It is the height of the
+orange curve in the figure above at time $t$.
+
+### Piece 1: No drift, boundary at 1
+
+Start with a process that has no drift ($v = 0$) and its upper boundary at 1 ($a = 1$).
+Only the starting point $z$ is left. Its first-passage time density is called $g$, and
+we write its time as $u$ to keep it separate from the real decision time $t$:
+
+$$
+g(u \mid z).
+$$
+
+Unlike the formulas in Chapter \@ref(predictions), $g$ cannot be written as one short
+expression. It is written as a **sum of terms** instead, like the sums you have met
+before but with no fixed end. One version is
+
+$$
+g(u \mid z) = \pi \sum_{k=1}^{\infty} k\, \exp\!\left(-\frac{k^2 \pi^2 u}{2}\right) \sin(k \pi z).
+$$
+
+Taking it a part at a time:
+
+- $\sum_{k=1}^{\infty}$ means: work out the expression to its right for $k = 1$, then
+  $k = 2$, then $k = 3$, and so on, and add the results together.
+- $\exp\!\left(-\frac{k^2 \pi^2 u}{2}\right)$ is $e$ raised to a negative power. The power
+  gets more negative as $k$ grows, and quickly, because $k$ is squared. So each term is
+  much smaller than the one before, and in practice the first 10 terms are enough.
+- $\sin(k \pi z)$ is where the starting point comes in. With $z = 0.5$ the process starts
+  halfway between the boundaries.
+
+The figure below adds the terms one at a time, for a process that starts at
+$z = 0.3$, nearer the lower boundary. The coloured lines are the sums of the first 1, 2
+and 3 terms, and the black line is the exact density.
+
+```{r g-terms-plot, echo = FALSE, fig.height = 3.6, fig.width = 8}
+g_first_terms <- function(u, z, K) {
+  k <- 1:K
+  map_dbl(u, \(uu) pi * sum(k * exp(-k^2 * pi^2 * uu / 2) * sin(k * pi * z)))
+}
+u_grid <- seq(0.005, 0.4, length.out = 400)
+g_terms <- bind_rows(
+  tibble(u = u_grid, g = g_first_terms(u_grid, 0.3, 1), version = "1 term"),
+  tibble(u = u_grid, g = g_first_terms(u_grid, 0.3, 2), version = "2 terms"),
+  tibble(u = u_grid, g = g_first_terms(u_grid, 0.3, 3), version = "3 terms"),
+  tibble(u = u_grid, g = g_std(u_grid, rep(0.3, length(u_grid))), version = "exact")
+)
+
+ggplot(g_terms, aes(x = u, y = g, colour = version, linewidth = version)) +
+  geom_hline(yintercept = 0, colour = "grey70") +
+  geom_line() +
+  scale_colour_manual(values = c("1 term" = "#9ecae1", "2 terms" = "#4292c6",
+                                 "3 terms" = "#08519c", "exact" = "black")) +
+  scale_linewidth_manual(values = c("1 term" = 0.6, "2 terms" = 0.6, "3 terms" = 0.6,
+                                    "exact" = 1.2)) +
+  coord_cartesian(ylim = c(0, 8)) +
+  labs(x = "time u (no drift, boundary at 1)", y = "density g(u | z = 0.3)",
+       colour = NULL, linewidth = NULL)
+```
+
+At later times (the right of the plot), one term is already close to the exact curve,
+and two or three terms are close from about 0.05 onwards. At very short times, though,
+a few terms are nowhere near: they keep climbing where the true curve drops to zero, and
+it takes many more terms to bring them down. So there is a second version of $g$. It describes the same
+curve, but its terms shrink quickly when $u$ is small:
+
+$$
+g(u \mid z) = \frac{1}{\sqrt{2\pi u^3}} \sum_{k=-\infty}^{\infty} (z + 2k)\, \exp\!\left(-\frac{(z+2k)^2}{2u}\right).
+$$
+
+You do not need to follow every part of this one. It is another sum, this time with $k$
+running through the negative numbers as well as the positive ones. The code uses this
+version when $u < 1$ and the first version otherwise, as recommended by Navarro & Fuss
+(2009). Appendix \@ref(calculus) explains where both versions come from.
+
+### Piece 2: Any boundary separation
+
+Moving the boundary from 1 to $a$ stretches time. The noise spreads out with the square
+root of time (Section \@ref(why-sqrt)), so a boundary twice as far away takes about four
+times as long to reach. A time $t$ with boundary $a$ therefore corresponds to a time
+$t / a^2$ with boundary 1:
+
+$$
+\frac{1}{a^2}\, g\!\left(\frac{t}{a^2} \,\middle|\, z\right).
+$$
+
+The $t / a^2$ inside $g$ does the stretching. The $1 / a^2$ in front keeps the area under
+the curve the same: stretching a curve sideways by $a^2$ and squashing it down by the
+same amount leaves its area unchanged.
+
+### Piece 3: Adding the drift
+
+The drift pulls paths towards one boundary. With a positive drift (towards "right"),
+fewer paths reach the lower boundary, and those that do get there sooner. The formula
+handles this with one more part, multiplied onto pieces 1 and 2:
+
+$$
+\exp\!\left(-v a z - \frac{v^2 t}{2}\right).
+$$
+
+- $-v a z$ does not depend on time. With a positive drift it is negative, so $\exp()$ of
+  it is less than 1 and the whole lower curve shrinks: fewer errors. With $v = 1$,
+  $a = 1.2$ and $z = 0.5$ it is $\exp(-0.6) \approx 0.55$.
+- $-\frac{v^2 t}{2}$ becomes more negative as $t$ grows, so it shrinks the curve more at
+  later times: a drift in either direction makes long decision times less likely.
+  Because $v$ is squared, this part is the same for a positive or a negative drift.
+
+### Putting the pieces together
+
+Multiplying the pieces gives the density for the lower boundary:
 
 $$
 f_{\text{lower}}(t \mid v, a, z)
-= \frac{1}{a^2}\, \exp\!\left(-v a z - \frac{v^2 t}{2}\right)\, g\!\left(\frac{t}{a^2} \,\middle|\, z\right)
+= \underbrace{\exp\!\left(-v a z - \frac{v^2 t}{2}\right)}_{\text{piece 3: drift}}
+\;\underbrace{\frac{1}{a^2}\, g\!\left(\frac{t}{a^2} \,\middle|\, z\right)}_{\text{pieces 1 and 2: no drift, boundary } a}
 $$
 
-The $1/a^2$ factor and the $t/a^2$ argument rescale time to a process with a boundary at
-1, the exponential term adjusts for the drift, and $g(u \mid z)$ is the density for a
-process with no drift and a boundary at 1. $g$ has no closed form. Navarro & Fuss
-(2009) give two series for it:
+### The upper boundary
 
-$$
-g_{\text{small}}(u \mid z) = \frac{1}{\sqrt{2\pi u^3}} \sum_{k=-\infty}^{\infty} (z + 2k)\, \exp\!\left(-\frac{(z+2k)^2}{2u}\right)
-$$
-
-$$
-g_{\text{large}}(u \mid z) = \pi \sum_{k=1}^{\infty} k\, \exp\!\left(-\frac{k^2 \pi^2 u}{2}\right) \sin(k \pi z)
-$$
-
-The first series converges quickly for small $u$ and the second for large $u$, so the
-code uses the first when $u < 1$ and the second otherwise. Ten terms of each are enough.
-Appendix \@ref(calculus) explains where the two series come from.
-
-The upper boundary follows by symmetry. Reaching $a$ from $z a$ with drift $v$ is the
-same as reaching 0 from $(1-z) a$ with drift $-v$, so
+The upper boundary needs no new formula. Turn the picture upside down: reaching $a$ from
+a start of $z a$ with drift $v$ is the same as reaching 0 from a start of $(1 - z) a$
+with drift $-v$. So
 
 $$
 f_{\text{upper}}(t \mid v, a, z) = f_{\text{lower}}(t \mid -v, a, 1 - z).
 $$
+
+The code below uses this. For an upper response it reverses the drift and mirrors the
+starting point, then uses the lower-boundary formula.
 
 ## The Code
 
@@ -147,7 +290,7 @@ ggplot(simulated, aes(x = rt, fill = response)) +
 ```
 
 The bars are the histograms from the start of the chapter, now on the same axis, and the
-lines are the formula. They agree, apart from simulation noise and the small delay
+lines are the formula built above. They agree, apart from simulation noise and the small delay
 caused by the 1 ms time steps. The formula gives the limit the histograms approach, so
 fitting never needs to simulate paths.
 
