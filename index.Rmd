@@ -68,3 +68,10 @@ what it will cover.
 The data in Part 1 are simulated, with known true parameter values, so you can always
 check whether a fit recovered what was put in. The script that made them is
 `data-raw/simulate_rdm.R` in the book's repository.
+
+## Licence {-}
+
+The text, figures and data in this book are licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), so you can reuse and adapt them
+as long as you credit the source. The code is licensed under MIT, so you can copy it into
+your own work freely.
