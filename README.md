@@ -1,4 +1,4 @@
-# demystR-ddm
+# ddm
 
 *The Drift Diffusion Model From Scratch*, part of the [demystR](https://demystr.github.io) series.
 
@@ -99,4 +99,5 @@ Supporting files:
 
 ## Licence
 
-To be decided. The data are simulated for this book.
+Text, figures and data: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+Code and widgets: MIT. See [LICENSE.md](LICENSE.md). The data are simulated for this book.
