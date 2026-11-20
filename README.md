@@ -93,9 +93,10 @@ Supporting files:
   coherence (0-100%) and direction, and "show coherent dots" colours the coherent dots.
   URL options: `?coherence=0.128&direction=left&reveal=1`. Edit this file, not the copy
   in `docs/apps/`.
-- `include/`: local copies of the PsyTeachR style files, as in `demyst`.
-  `include/header.html` is deliberately empty: `demyst`'s copy contains a Google
-  Analytics tag, which should not be reused here.
+- `include/`: the shared demystR theme. `demystR.css` sets the colours, fonts and
+  callout boxes, `header.html` adds the favicon, and `demystR-footer.html` puts the
+  series line and licence in the footer. `ddm.css` holds this book's own rules: the
+  list of unwritten chapters, shown in grey italics in the contents.
 
 ## Licence
 

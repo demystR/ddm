@@ -62,7 +62,7 @@ other.
 
 **Later chapters** add models fitted to a whole group at once (hierarchical models).
 
-The chapters shown in red in the contents have not been written yet; each one describes
+The chapters shown in grey italics in the contents have not been written yet; each one describes
 what it will cover.
 
 ## The Data {-}
