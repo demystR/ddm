@@ -30,6 +30,8 @@ jobs:
         with:
           packages: |
             any::bookdown
+            any::downlit
+            any::xml2
             any::tidyverse
             any::webexercises
 
